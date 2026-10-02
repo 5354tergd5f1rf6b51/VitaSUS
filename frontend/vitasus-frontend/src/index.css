@@ -147,6 +147,15 @@ a {
   border-color: var(--azul);
 }
 
+.campo input:user-invalid {
+  border-color: var(--erro);
+  background: var(--erro-fundo);
+}
+
+.campo:has(input:user-invalid) label {
+  color: var(--erro);
+}
+
 .botao {
   font: inherit;
   font-weight: 700;
