@@ -6,7 +6,7 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var pacienteRouter = require('./routes/paciente');
-app.use('/pacientes', pacienteRouter);
+var profissionalRouter = require('./routes/profissional');
 
 var app = express();
 
@@ -20,8 +20,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
@@ -32,7 +32,8 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/pacientes', usuariosRouter);
+app.use('/pacientes', pacienteRouter);
+app.use('/profissionais', profissionalRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -45,8 +46,16 @@ app.use(function(err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
   res.status(err.status || 500);
+
+  // A API responde em JSON; só as demais rotas renderizam a página de erro.
+  if (/^\/(pacientes|profissionais)(\/|$)/.test(req.originalUrl)) {
+    var invalido = err.type === 'entity.parse.failed';
+    if (invalido) res.status(400);
+    return res.json({ error: invalido ? 'Corpo da requisição inválido.' : (err.status === 404 ? 'Rota não encontrada.' : 'Erro interno.') });
+  }
+
+  // render the error page
   res.render('error');
 });
 

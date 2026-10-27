@@ -1,18 +1,24 @@
-export default function AuthLayout({ children, largo = false }) {
+import { Link } from 'react-router-dom'
+import { Marca } from './Logo.jsx'
+import Icone from './Icone.jsx'
+
+// Telas de entrada: faixa azul-marinho com a marca + cartão centralizado.
+// `voltar` é o destino do botão de retorno (seta no canto superior).
+export default function AuthLayout({ children, largo = false, voltar = '/' }) {
   return (
     <main className="auth">
-      <section className="auth__marca">
-        <svg viewBox="0 0 48 48" aria-hidden="true">
-          <rect x="17" y="6" width="14" height="36" rx="3" fill="#fff" />
-          <rect x="6" y="17" width="36" height="14" rx="3" fill="#fff" />
-        </svg>
-        <h1 className="auth__nome">VitaSUS</h1>
-        <p className="auth__sub">Área do paciente</p>
-      </section>
-      <section className="auth__conteudo">
-        <div className={`auth__form${largo ? ' auth__form--largo' : ''}`}>
-          {children}
+      <aside className="auth__marca">
+        <div className="auth__marca-conteudo">
+          <Marca tamanho={56} />
+          <span className="auth__nome">VitaSUS</span>
         </div>
+      </aside>
+      <section className="auth__conteudo">
+        <Link to={voltar} className="auth__voltar" aria-label="Voltar">
+          <Icone nome="voltar" tamanho={26} />
+        </Link>
+        <div className={`auth__cartao${largo ? ' auth__cartao--largo' : ''}`}>{children}</div>
+        <p className="auth__aviso">Projeto acadêmico • ambiente demonstrativo • sem vínculo com o SUS oficial</p>
       </section>
     </main>
   )

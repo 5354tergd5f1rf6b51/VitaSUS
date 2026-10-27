@@ -23,6 +23,8 @@ model Paciente {
   agendamentos     Agendamento[]
   senhas           Senha[]
   prontuarios      Prontuario[]
+  exames           Exame[]
+  notificacoes     Notificacao[]
 }
 
 model Agendamento {
@@ -37,6 +39,8 @@ model Agendamento {
 
   pacienteId       Int
   paciente         Paciente @relation(fields: [pacienteId], references: [idPaciente])
+
+  atendimento      Atendimento?
 }
 
 model Agenda {
@@ -46,7 +50,13 @@ model Agenda {
   vagasDisponiveis Int
 
   agendamentos     Agendamento[]
-  profissionais    ProfissionalSus[]
+  profissionais    ProfissionalSus[] @relation("ProfissionalAgenda")
+
+  // Novos (opcionais): de quem é este horário e em qual unidade.
+  profissionalId   Int?
+  profissional     ProfissionalSus?     @relation("AgendaDoProfissional", fields: [profissionalId], references: [idProfissionalSus])
+  unidadeId        Int?
+  unidade          UnidadeAtendimento?  @relation(fields: [unidadeId], references: [idUnidadeAtendimento])
 }
 
 model ProfissionalSus {
@@ -60,7 +70,11 @@ model ProfissionalSus {
   senhaAcesso          String @db.VarChar(255)
 
   agendaId             Int
-  agenda               Agenda @relation(fields: [agendaId], references: [idAgenda])
+  agenda               Agenda @relation("ProfissionalAgenda", fields: [agendaId], references: [idAgenda])
+
+  agendasProprias      Agenda[]       @relation("AgendaDoProfissional")
+  registros            Atendimento[]
+  notificacoes         Notificacao[]
 }
 
 model Senha {
@@ -97,6 +111,8 @@ model UnidadeAtendimento {
 
   filaEsperaId         Int
   filaEspera           FilaEspera @relation(fields: [filaEsperaId], references: [idFilaEspera])
+
+  agendas              Agenda[]
 }
 
 model Prontuario {
@@ -124,6 +140,12 @@ model Atendimento {
   notificacao       Notificacao? @relation(fields: [notificacaoId], references: [idNotificacao])
 
   senhas            Senha[]
+
+  // Novos (opcionais): registro vinculado ao agendamento e ao profissional.
+  agendamentoId     Int?         @unique
+  agendamento       Agendamento? @relation(fields: [agendamentoId], references: [idAgendamento])
+  profissionalId    Int?
+  profissional      ProfissionalSus? @relation(fields: [profissionalId], references: [idProfissionalSus])
 }
 
 model Administrador {
@@ -141,4 +163,22 @@ model Notificacao {
   statusLeitura   String   @db.VarChar(45)
 
   atendimentos    Atendimento[]
+
+  // Novos (opcionais): destinatário da notificação.
+  pacienteId      Int?
+  paciente        Paciente? @relation(fields: [pacienteId], references: [idPaciente])
+  profissionalId  Int?
+  profissional    ProfissionalSus? @relation(fields: [profissionalId], references: [idProfissionalSus])
+}
+
+// Novo: exames do paciente (dados demonstrativos no ambiente acadêmico).
+model Exame {
+  idExame         Int      @id @default(autoincrement())
+  nome            String   @db.VarChar(100)
+  dataSolicitacao DateTime @db.Date
+  status          String   @db.VarChar(45)
+  resultado       String?  @db.VarChar(255)
+
+  pacienteId      Int
+  paciente        Paciente @relation(fields: [pacienteId], references: [idPaciente])
 }
